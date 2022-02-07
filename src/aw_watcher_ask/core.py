@@ -12,6 +12,7 @@ from datetime import datetime
 from typing import Any, Dict, Optional
 
 import zenity
+import zenipy
 from aw_client import ActivityWatchClient
 from aw_core.models import Event
 from croniter import croniter
@@ -47,6 +48,12 @@ def _ask_one(
 ) -> Dict[str, Any]:
     """Captures an user's response to a dialog box with a single field."""
     kwargs.pop("ctx", None)
+    print(">>>>>>>>>>>>>>>>>>>>>>>>> args: ", args)
+    print(">>>>>>>>>>>>>>>>>>>>>>>>> kwargs: ", kwargs)
+    print(">>>>>>>>>>>>>>>>>>>>>>>>> question_type: ", question_type)
+    print(">>>>>>>>>>>>>>>>>>>>>>>>> question_type value: ", question_type.value)
+    print(">>>>>>>>>>>>>>>>>>>>>>>>> title: ", title)
+    content = zenipy.zenipy.question(title=title, text=kwargs[1], width=330, height=120, timeout=kwargs[0])
     success, content = zenity.show(
         question_type.value, title=title, *args, **kwargs
     )
