@@ -12,7 +12,7 @@ from datetime import datetime
 from typing import Any, Dict, Optional
 
 import zenity
-import zenipy
+from zenipy import zenipy
 from aw_client import ActivityWatchClient
 from aw_core.models import Event
 from croniter import croniter
@@ -43,6 +43,79 @@ def _client_setup(testing: bool = False) -> ActivityWatchClient:
     return ActivityWatchClient(client_name, testing=testing)
 
 
+def _choose_dialog(question_type: DialogType, title: str, *args, **kwargs):
+    content = ""
+    dialogWidth = 330
+    dialogHeight = 120
+    if "width" in kwargs:
+        dialogWidth = kwargs["width"]
+    if "height" in kwargs:
+        dialogHeight = kwargs["height"]
+    try:
+        dialogChoice = {
+                "scale": {
+                    zenipy.scale(
+                        text=kwargs["text"],
+                        value=int(kwargs["value"]), min=int(kwargs["min"]), max=int(kwargs["max"]), step=int(kwargs["step"]),
+                        draw_value=True, title=title,
+                        width=dialogWidth, height=dialogHeight, timeout=kwargs["timeout"])
+                },
+                "calendar": {
+                    zenipy.calendar(
+                        text=kwargs["text"]
+                        day=None,
+                        month=None,
+                        title=title
+                        width=dialogWidth, height=dialogHeight,
+                        timeout=kwargs["timeout"])
+                },
+                "color-selection": {
+                    zenipy.color_selection(
+                        show_palette=bool(kwargs["show_palette"]),
+                        opacity_control=bool(kwargs["opacity_control"]),
+                        title=title, width=dialogWidth, height=dialogHeight,
+                        timeout=kwargs["timeout"])
+                },
+                "entry": {
+                    zenipy.entry(
+                        text=kwargs["text"],
+                        placeholder=kwargs["placeholder"],
+                        title=title,
+                        width=dialogWidth, height=dialogHeight,
+                        timeout=kwargs["timeout"])
+                },
+                "error": {
+                   zenipy.error(
+                       title=title, text=kwargs["text"],
+                       width=dialogWidth, height=dialogHeight,
+                       timeout=kwargs["timeout"])
+                },
+                "file-selection": {
+                    zenipy.file_selection(
+                        multiple=bool(kwargs["multiple"]),
+                        directory=bool(kwargs["directory"]),
+                        save=bool(kwargs["save"]),
+                        confirm_overwrite=bool(kwargs["confirm_overwrite"]),
+                        filename=kwargs["filename"],
+                        title=title,
+                        width=dialogWidth, height=dialogHeight,
+                        timeout=kwargs["timeout"])
+                },
+                "info": {
+                    
+                }
+
+        }
+    except:
+        raise TypeError("incorrect or incomplete Dialog options provided!")
+
+    content  = dialogChoice.get(question_type.value, False)
+    if content == False:
+        raise Exception("invalid Dialog type selected!")
+
+    return content
+
+
 def _ask_one(
     question_type: DialogType, title: str, *args, **kwargs
 ) -> Dict[str, Any]:
@@ -53,12 +126,9 @@ def _ask_one(
     print(">>>>>>>>>>>>>>>>>>>>>>>>> question_type: ", question_type)
     print(">>>>>>>>>>>>>>>>>>>>>>>>> question_type value: ", question_type.value)
     print(">>>>>>>>>>>>>>>>>>>>>>>>> title: ", title)
-    content = zenipy.zenipy.question(title=title, text=kwargs[1], width=330, height=120, timeout=kwargs[0])
-    success, content = zenity.show(
-        question_type.value, title=title, *args, **kwargs
-    )
+    content = _choose_dialog(question_type, title, *args, **kwargs)
     return {
-        "success": success,
+        "success": (type(content) == float),
         title: content,
     }
 
