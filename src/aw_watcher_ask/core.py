@@ -52,73 +52,87 @@ def _choose_dialog(question_type: DialogType, title: str, *args, **kwargs):
     if "height" in kwargs:
         dialogHeight = kwargs["height"]
     try:
-        dialogChoice = {
-                "scale": {
-                    zenipy.scale(
-                        text=kwargs["text"],
-                        value=int(kwargs["value"]), min=int(kwargs["min"]), max=int(kwargs["max"]), step=int(kwargs["step"]),
-                        draw_value=True, title=title,
-                        width=dialogWidth, height=dialogHeight, timeout=kwargs["timeout"])
-                },
-                "calendar": {
-                    zenipy.calendar(
-                        text=kwargs["text"]
-                        day=None,
-                        month=None,
-                        title=title
-                        width=dialogWidth, height=dialogHeight,
-                        timeout=kwargs["timeout"])
-                },
-                "color-selection": {
-                    zenipy.color_selection(
-                        show_palette=bool(kwargs["show_palette"]),
-                        opacity_control=bool(kwargs["opacity_control"]),
-                        title=title, width=dialogWidth, height=dialogHeight,
-                        timeout=kwargs["timeout"])
-                },
-                "entry": {
-                    zenipy.entry(
-                        text=kwargs["text"],
-                        placeholder=kwargs["placeholder"],
-                        title=title,
-                        width=dialogWidth, height=dialogHeight,
-                        timeout=kwargs["timeout"])
-                },
-                "error": {
-                   zenipy.error(
-                       title=title, text=kwargs["text"],
-                       width=dialogWidth, height=dialogHeight,
-                       timeout=kwargs["timeout"])
-                },
-                "file-selection": {
-                    zenipy.file_selection(
-                        multiple=bool(kwargs["multiple"]),
-                        directory=bool(kwargs["directory"]),
-                        save=bool(kwargs["save"]),
-                        confirm_overwrite=bool(kwargs["confirm_overwrite"]),
-                        filename=kwargs["filename"],
-                        title=title,
-                        width=dialogWidth, height=dialogHeight,
-                        timeout=kwargs["timeout"])
-                },
-                "info": {
-                    
-                }
+        dialogChoice = question_type.value
+        if(dialogChoice is "calendar"):
+            content = zenipy.calendar(
+                    text=kwargs["text"],
+                    day=None,
+                    month=None,
+                    title=title,
+                    width=dialogWidth, height=dialogHeight,
+                    timeout=kwargs["timeout"])
+        elif(dialogChoice is "color-selection"):
+            content = zenipy.color_selection(
+                    show_palette=bool(kwargs["show_palette"]),
+                    opacity_control=bool(kwargs["opacity_control"]),
+                    title=title, width=dialogWidth, height=dialogHeight,
+                    timeout=kwargs["timeout"])
+        elif(dialogChoice is "entry"):
+            content = zenipy.entry(
+                    text=kwargs["text"],
+                    placeholder=kwargs["placeholder"],
+                    title=title,
+                    width=dialogWidth, height=dialogHeight,
+                    timeout=kwargs["timeout"])
+        elif(dialogChoice is "error"):
+            content = zenipy.error(
+                    title=title, text=kwargs["text"],
+                    width=dialogWidth, height=dialogHeight,
+                    timeout=kwargs["timeout"])
 
-        }
-    except:
+        elif(dialogChoice is "file-selection"):
+            content = zenipy.file_selection(
+                    multiple=bool(kwargs["multiple"]),
+                    directory=bool(kwargs["directory"]),
+                    save=bool(kwargs["save"]),
+                    confirm_overwrite=bool(kwargs["confirm_overwrite"]),
+                    filename=kwargs["filename"],
+                    title=title,
+                    width=dialogWidth, height=dialogHeight,
+                    timeout=kwargs["timeout"])
+        elif(dialogChoice is "info"):
+            content = zenipy.message(
+                    title=title, text=kwargs["text"],
+                    width=dialogWidth, height=dialogHeight,
+                    timeout=kwargs["timeout"])
+        elif(dialogChoice is "password"):
+            content = zenipy.password(
+                    text=kwargs["text"],
+                    placeholder=kwargs["placeholder"],
+                    title=title,
+                    width=dialogWidth, height=dialogHeight,
+                    timeout=kwargs["timeout"])
+        elif(dialogChoice is "question"):
+            content = zenipy.question(
+                    title=title, text=kwargs["text"],
+                    width=dialogWidth, height=dialogHeight,
+                    timeout=kwargs["timeout"])
+        elif(dialogChoice is "scale"):
+            content = zenipy.scale(
+                    text=kwargs["text"],
+                    value=int(kwargs["value"]),
+                    min=int(kwargs["min"]), max=int(kwargs["max"]),
+                    step=int(kwargs["step"]),
+                    draw_value=True, title=title,
+                    width=dialogWidth, height=dialogHeight,
+                    timeout=kwargs["timeout"])
+        elif(dialogChoice is "warning"):
+            content = zenipy.warning(
+                    title=title, text=kwargs["text"],
+                    width=dialogWidth, height=dialogHeight,
+                    timeout=kwargs["timeout"])
+        if not content:
+            raise Exception("invalid Dialog type selected!")
+
+    except TypeError:
         raise TypeError("incorrect or incomplete Dialog options provided!")
-
-    content  = dialogChoice.get(question_type.value, False)
-    if content == False:
-        raise Exception("invalid Dialog type selected!")
 
     return content
 
 
 def _ask_one(
-    question_type: DialogType, title: str, *args, **kwargs
-) -> Dict[str, Any]:
+        question_type: DialogType, title: str, *args, **kwargs
+        ) -> Dict[str, Any]:
     """Captures an user's response to a dialog box with a single field."""
     kwargs.pop("ctx", None)
     print(">>>>>>>>>>>>>>>>>>>>>>>>> args: ", args)
@@ -128,29 +142,29 @@ def _ask_one(
     print(">>>>>>>>>>>>>>>>>>>>>>>>> title: ", title)
     content = _choose_dialog(question_type, title, *args, **kwargs)
     return {
-        "success": (type(content) == float),
-        title: content,
-    }
+            "success": (type(content) == float),
+            title: content,
+            }
 
 
 def _ask_many(
-    question_type: DialogType, separator: str = "|", *args, **kwargs
-) -> Dict[str, Any]:
+        question_type: DialogType, separator: str = "|", *args, **kwargs
+        ) -> Dict[str, Any]:
     """Captures the user's response to a dialog box with multiple fields."""
     raise NotImplementedError
 
 
 def main(
-    question_id: str,
-    question_type: DialogType = DialogType.question,
-    title: Optional[str] = None,
-    schedule: str = "R * * * *",
-    until: datetime = datetime(2100, 12, 31),
-    timeout: int = 60,
-    testing: bool = False,
-    *args,
-    **kwargs,
-) -> None:
+        question_id: str,
+        question_type: DialogType = DialogType.question,
+        title: Optional[str] = None,
+        schedule: str = "R * * * *",
+        until: datetime = datetime(2100, 12, 31),
+        timeout: int = 60,
+        testing: bool = False,
+        *args,
+        **kwargs,
+        ) -> None:
     """Gathers user's inputs and send them to ActivityWatch.
 
     This watcher periodically presents a dialog box to the user, and stores the
@@ -212,8 +226,8 @@ def main(
     if not is_valid_id(question_id):
         question_id = fix_id(question_id)
         log.warning(
-            f"An invalid question_id was provided. Fixed to `{question_id}`."
-        )
+                f"An invalid question_id was provided. Fixed to `{question_id}`."
+                )
         log = log.bind(question_id=question_id)
 
     # fix offset-naive datetimes
@@ -224,8 +238,8 @@ def main(
     # start client and bucket
     client = _client_setup(testing=testing)
     log.info(
-        f"Client created and connected to server at {client.server_address}."
-    )
+            f"Client created and connected to server at {client.server_address}."
+            )
     bucket_id = _bucket_setup(client, question_id)
 
     # execution schedule
@@ -236,33 +250,33 @@ def main(
         # wait until next execution
         next_execution = executions.get_next(datetime)
         log.info(
-            f"Next execution scheduled to {next_execution.isoformat()}."
-        )
+                f"Next execution scheduled to {next_execution.isoformat()}."
+                )
         sleep_time = next_execution - get_current_datetime()
         time.sleep(max(sleep_time.seconds, 0))
 
         log.info(
-            "New prompt fired. Waiting for user input..."
-        )
+                "New prompt fired. Waiting for user input..."
+                )
         if question_type.value in ["forms", "file-selection", "list"]:
             # TODO: not implemented
             answer = _ask_many(
-                question_type=question_type,
-                title=title,
-                timeout=timeout,
-                *args,
-                **kwargs,
-            )
+                    question_type=question_type,
+                    title=title,
+                    timeout=timeout,
+                    *args,
+                    **kwargs,
+                    )
         else:
             answer = _ask_one(
-                question_type=question_type,
-                title=(
-                    title if title else question_id
-                ),
-                timeout=timeout,
-                *args,
-                **kwargs,
-            )
+                    question_type=question_type,
+                    title=(
+                        title if title else question_id
+                        ),
+                    timeout=timeout,
+                    *args,
+                    **kwargs,
+                    )
         if not answer["success"]:
             log.info("Prompt timed out with no response from user.")
 
